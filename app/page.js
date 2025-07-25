@@ -1,8 +1,28 @@
 import Image from "next/image";
+import {logout} from "../supabase/actions";
+import DemoClientComponents from "./components/demoClientComponent";
+
+
 
 export default function Home() {
+
+
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
+
+      <form>
+        <div className="mb-4 ">
+          <DemoClientComponents/>
+        </div>
+
+        <button formAction={logout}
+            className="rounded-full border pointer border-solid border-transparent transition-colors  bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
+
+        >
+          log out
+        </button>
+      </form>
+
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
         <Image
           className="dark:invert"
@@ -16,7 +36,7 @@ export default function Home() {
           <li className="mb-2 tracking-[-.01em]">
             Get started by editing{" "}
             <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.js
+              app/page.jsx
             </code>
             .
           </li>
