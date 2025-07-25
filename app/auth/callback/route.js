@@ -14,8 +14,30 @@ export async function GET(request) {
 
     if (code) {
         const supabase = await createClient()
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (!error) {
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+
+        if (!error && data.user) {
+            // Check if this is a new OAuth user or user without role
+            if (!data.user.user_metadata?.role) {
+                console.log('Assigning default role to OAuth user:', data.user.email)
+
+                try {
+                    // Set default role for new OAuth users
+                    await supabase.auth.updateUser({
+                        data: {
+                            role: 'user',
+                            created_at: new Date().toISOString()
+                        }
+                    })
+                    console.log('Role assigned successfully')
+                } catch (updateError) {
+                    console.error('Error assigning role to OAuth user:', updateError)
+                    // Continue with redirect even if role assignment fails
+                }
+            } else {
+                console.log('OAuth user already has role:', data.user.user_metadata.role)
+            }
+
             const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
             const isLocalEnv = process.env.NODE_ENV === 'development'
             if (isLocalEnv) {
