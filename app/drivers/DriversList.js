@@ -34,7 +34,7 @@ export default function DriversList({ user, initialDrivers }) {
 
             <div className="mb-4 p-3 bg-gray-100 rounded">
                 <p className="text-sm text-gray-600">
-                    Logged in as: {user.email} | Role: {user.user_metadata?.role || 'user'}
+                    Logged in as: {user.email || user.user_metadata?.full_name } | Role: {user.user_metadata?.role || 'user'}
                 </p>
             </div>
 

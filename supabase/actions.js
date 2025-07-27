@@ -99,7 +99,7 @@ export async function logout() {
 }
 
 // NEW: Handle SMS OTP sending for phone authentication
-export async function handleSendSMSOTP(phone) {
+export async function handleSendSMSOTP(phone,fullName) {
     const supabase = await createClient()
 
     try {
@@ -108,7 +108,9 @@ export async function handleSendSMSOTP(phone) {
             options: {
                 // Set default role for new phone auth users
                 data: {
-                    role: 'user'
+                    role: 'user',
+                    full_name: fullName.trim(),
+                    display_name: fullName.trim()
                 }
             }
         })

@@ -4,6 +4,7 @@ import { handleSendSMSOTP, handleVerifySMSOTP } from '../../supabase/actions'
 
 export default function PhoneAuthWithServerActions() {
     const [phone, setPhone] = useState('')
+    const [fullName, setFullName] = useState('')
     const [otp, setOtp] = useState('')
     const [step, setStep] = useState('phone') // 'phone' or 'otp'
     const [message, setMessage] = useState('')
@@ -13,9 +14,15 @@ export default function PhoneAuthWithServerActions() {
         e.preventDefault()
         setMessage('')
 
+        // Validate full name
+        if (!fullName.trim()) {
+            setMessage('Error: Please enter your full name')
+            return
+        }
+
         startTransition(async () => {
             try {
-                const result = await handleSendSMSOTP(phone)
+                const result = await handleSendSMSOTP(phone, fullName.trim())
                 if (result.success) {
                     setMessage('OTP sent successfully! Check your SMS.')
                     setStep('otp')
@@ -32,7 +39,7 @@ export default function PhoneAuthWithServerActions() {
 
         startTransition(async () => {
             try {
-                const result = await handleVerifySMSOTP(phone, otp)
+                const result = await handleVerifySMSOTP(phone, otp, fullName.trim())
                 if (result.success) {
                     setMessage('Successfully signed in! Redirecting...')
                     // The server action will handle the redirect
@@ -63,6 +70,22 @@ export default function PhoneAuthWithServerActions() {
             {step === 'phone' ? (
                 <form onSubmit={handleSendOTP}>
                     <div className="mb-4">
+                        <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
+                            Full Name
+                        </label>
+                        <input
+                            type="text"
+                            id="fullName"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            placeholder="Enter your full name"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                            disabled={isPending}
+                        />
+                    </div>
+
+                    <div className="mb-4">
                         <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                             Phone Number
                         </label>
@@ -92,6 +115,17 @@ export default function PhoneAuthWithServerActions() {
             ) : (
                 <form onSubmit={handleVerifyOTP}>
                     <div className="mb-4">
+                        <div className="bg-gray-50 p-3 rounded-md mb-4">
+                            <p className="text-sm text-gray-600">
+                                <strong>Name:</strong> {fullName}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                                <strong>Phone:</strong> {phone}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="mb-4">
                         <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-2">
                             Enter OTP
                         </label>
@@ -107,7 +141,7 @@ export default function PhoneAuthWithServerActions() {
                             disabled={isPending}
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                            Sent to: {phone}
+                            Enter the 6-digit code sent to your phone
                         </p>
                     </div>
 

@@ -13,7 +13,7 @@ export default async function PrivatePage() {
 
     return (
         <div>
-            <p>Hello {data.user.email}</p>
+            <p>Hello {data.user.email || data.user.user_metadata?.full_name}</p>
             <p>Your role: {data.user.user_metadata?.role}</p>
         </div>
     )
