@@ -98,24 +98,87 @@ export async function logout() {
     redirect('/')
 }
 
-// New function to update user role (admin only)
-export async function updateUserRole(userId, newRole) {
+// NEW: Handle SMS OTP sending for phone authentication
+export async function handleSendSMSOTP(phone) {
     const supabase = await createClient()
 
-    // First, check if current user is admin
-    const { data: { user: currentUser } } = await supabase.auth.getUser()
-    if (currentUser?.user_metadata?.role !== 'admin') {
-        throw new Error('Unauthorized: Admin access required')
+    try {
+        const { data, error } = await supabase.auth.signInWithOtp({
+            phone: phone,
+            options: {
+                // Set default role for new phone auth users
+                data: {
+                    role: 'user'
+                }
+            }
+        })
+
+        if (error) {
+            console.error('SMS OTP send error:', error)
+            throw new Error(error.message)
+        }
+
+        console.log('SMS OTP sent successfully to:', phone)
+        return { success: true, message: 'OTP sent successfully' }
+
+    } catch (error) {
+        console.error('Error sending SMS OTP:', error)
+        throw new Error(`Failed to send OTP: ${error.message}`)
     }
-
-    // Update the user's metadata
-    const { data, error } = await supabase.auth.admin.updateUserById(userId, {
-        user_metadata: { role: newRole }
-    })
-
-    if (error) {
-        throw new Error(`Failed to update user role: ${error.message}`)
-    }
-
-    return data
 }
+
+// NEW: Handle SMS OTP verification and login
+export async function handleVerifySMSOTP(phone, token) {
+    const supabase = await createClient()
+
+    try {
+        const { data: { session }, error } = await supabase.auth.verifyOtp({
+            phone: phone,
+            token: token,
+            type: 'sms'
+        })
+
+        if (error) {
+            console.error('SMS OTP verification error:', error)
+            throw new Error(error.message)
+        }
+
+        if (session?.user) {
+            console.log('Phone authentication successful for:', session.user.phone)
+            console.log('User role:', session.user.user_metadata?.role || 'user')
+
+            // If this is a new user (first time phone auth), ensure they have the default role
+            if (!session.user.user_metadata?.role) {
+                try {
+                    const { error: updateError } = await supabase.auth.updateUser({
+                        data: { role: 'user' }
+                    })
+
+                    if (updateError) {
+                        console.error('Error setting default role:', updateError)
+                    } else {
+                        console.log('Default role set for new phone user')
+                    }
+                } catch (roleError) {
+                    console.error('Failed to set default role:', roleError)
+                }
+            }
+
+            revalidatePath('/')
+            return {
+                success: true,
+                session: session,
+                message: 'Phone authentication successful'
+            }
+        } else {
+            console.log('Phone verification failed: No user session returned')
+            throw new Error('Verification failed: No user session')
+        }
+
+    } catch (error) {
+        console.error('Error verifying SMS OTP:', error)
+        throw new Error(`Failed to verify OTP: ${error.message}`)
+    }
+}
+
+
