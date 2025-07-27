@@ -1,4 +1,5 @@
 // app/drivers/page.js (Server Component)
+"use server"
 import { createClient } from '../../supabase/server';
 import { redirect } from 'next/navigation';
 import DriversList from './DriversList';
@@ -12,7 +13,7 @@ export default async function DriversPage() {
     }
 
     // Fetch drivers server-side
-    const { data: drivers, driversError } = await supabase
+    const { data: drivers, error: driversError } = await supabase
         .from('drivers')
         .select('*');
 
