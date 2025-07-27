@@ -39,6 +39,20 @@ body {
   gap: 8px; /* Use gap for spacing between flex items */
   cursor: pointer;
 }
+.phone_button {
+  width: 320px; /* No quotes for CSS values */
+  padding: 12px;
+  background-color: #e0a02d; /* Use background-color */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Use gap for spacing between flex items */
+  cursor: pointer;
+}
 .signup_button {
   width: 100%; /* No quotes for CSS values */
   padding: 12px;
